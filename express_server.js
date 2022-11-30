@@ -13,9 +13,6 @@ const urlDatabase = {
 app.use(express.urlencoded({ extended: true })); //added for POST requests
 
 
-
-
-
 // generate a random 6 character alphanumeric string
 let randomString = function() {
   const inputArr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -110,13 +107,15 @@ app.post('/login', (req, res) => {
 });
 
 //logout route
+app.post('/logout', (req, res) => {
 
+  const username = req.body.username;
+  res.clearCookie('username', username);
 
+  res.redirect('/urls');
+});
 
-
-
-
-
+// listening
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
