@@ -1,7 +1,8 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-
+let cookieParser = require("cookie-parser");
+app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -69,7 +70,7 @@ app.post('/urls/:id/delete', (req, res) => {
 });
 
 // RENDERING / INDEX ROUTES
-// all the routes that render a ui - user interface (HTML/CSS)
+// all the routes that render a ui - user (HTML/CSS)
 // New - GET
 app.get("/urls/new", (req, res) => {
   const templateVars = {
@@ -90,10 +91,7 @@ app.get("/urls/:id", (req, res) => {
 
 //All - GET
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    username: req.cookies["username"],
-    urls: urlDatabase
-  };
+  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -104,10 +102,10 @@ app.get("/urls", (req, res) => {
 
 //Login route
 app.post('/login', (req, res) => {
-   
+
   const username = req.body.username;
   res.cookie('username', username);
-    
+
   res.redirect('/urls');
 });
 
