@@ -86,6 +86,14 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// Register - GET
+app.get("/register", (req, res) => {
+   const templateVars = {
+    username: req.cookies["username"],
+  };
+  res.render("urls_register", templateVars);
+});
+
 //All - GET
 app.get("/urls", (req, res) => {
   const templateVars = { username: req.cookies["username"], urls: urlDatabase };
@@ -95,6 +103,15 @@ app.get("/urls", (req, res) => {
 //AUTH API ROUTES
 // Register
 
+//register route
+app.post('/register', (req, res) => {
+
+  const email = req.body.email;
+  const password = req.body.password;
+  res.cookie('email', email);
+  
+  res.redirect('/urls');
+});
 
 
 //Login route

@@ -22,10 +22,12 @@
           </form>
         </div>
         <% } else{ %>
-          <form method="POST" action="/login">
-            <input type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em">
-            <button type="submit" class="btn btn-danger">login </button>
-          </form>
+          <div>
+            <form method="POST" action="/login">
+              <input type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em">
+              <button type="submit" class="btn btn-danger">login </button>
+            </form>
+          </div>
           <% } %>
     </div>
   </nav>
