@@ -10,6 +10,16 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+//users database
+const users = {
+  // userRandomID: {
+  //   id: "userRandomID",
+  //   email: "user@example.com",
+  //   password: "purple-monkey-dinosaur",
+  // },
+  
+};
+
 app.use(express.urlencoded({ extended: true })); //added for POST requests
 
 
@@ -88,7 +98,7 @@ app.get("/urls/:id", (req, res) => {
 
 // Register - GET
 app.get("/register", (req, res) => {
-   const templateVars = {
+  const templateVars = {
     username: req.cookies["username"],
   };
   res.render("urls_register", templateVars);
@@ -103,13 +113,20 @@ app.get("/urls", (req, res) => {
 //AUTH API ROUTES
 // Register
 
-//register route
+//register route - POST
 app.post('/register', (req, res) => {
 
   const email = req.body.email;
   const password = req.body.password;
-  res.cookie('email', email);
-  
+  const user_id = randomString();
+  users.user_id = {
+    id: user_id,
+    email: email,
+    password: password
+  };
+
+  res.cookie('user_id', user_id);
+  console.log(users);
   res.redirect('/urls');
 });
 
