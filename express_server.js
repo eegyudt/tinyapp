@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true })); //added for POST requests
 
 // generate a random 6 character alphanumeric string
 let randomString = function() {
-  const inputArr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const inputArr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
   let randomStr = '';
   for (let i = 0; i <= 6; i++) {
     let randomNum = Math.floor(Math.random() * inputArr.length);
@@ -30,12 +30,6 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${urlShortCode}`); //redirecting from shortURL to longURL
 });
 
-// Delete a URL - POST route that removes a URL resource
-app.post('/urls/:id/delete', (req, res) => {
-  const urlID = req.params.id;
-  delete urlDatabase[urlID];
-  res.redirect("/urls");
-});
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -66,4 +60,20 @@ app.get("/u/:id", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
+});
+
+// Delete a URL - POST route that removes a URL resource
+app.post('/urls/:id/delete', (req, res) => {
+  const urlID = req.params.id;
+  delete urlDatabase[urlID];
+  res.redirect("/urls");
+});
+
+//Update url
+
+app.post('/urls/:id', (req, res) => {
+  const urlId = req.params.id;
+  const longURL = req.body.longURL;
+  urlDatabase[urlId] = longURL;
+  res.redirect('/urls');
 });
