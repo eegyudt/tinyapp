@@ -56,17 +56,26 @@ app.get("/", (req, res) => {
 // Create - POST
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
+  const user_id = req.cookies['user_id'];
+  if (!user_id) {
+    return res.status(400).send("You must be logged in to use TinyApp!");
+  }
   const urlShortCode = randomString();
   urlDatabase[urlShortCode] = req.body.longURL;
 
   res.redirect(`/urls/${urlShortCode}`); //redirecting from shortURL to longURL
 });
 
-// Read one - GET
+// Read a short URL - GET
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
-});
+  if (urlDatabase[req.params.id]) {
+    const longURL = urlDatabase[req.params.id];
+    if (!longURL) {
+      res.status(400).send("This short url does not exist!");
+    } else {
+      res.redirect(longURL);
+    }
+ }});
 
 //Update - POST
 app.post('/urls/:id', (req, res) => {
@@ -88,6 +97,9 @@ app.post('/urls/:id/delete', (req, res) => {
 // New - GET
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies['user_id'];
+  if (!user_id) {
+    return res.redirect('/login');
+  }
   const user = users[user_id];
   const templateVars = { user };
 
@@ -110,7 +122,7 @@ app.get("/urls/:id", (req, res) => {
 // Register - GET
 app.get("/register", (req, res) => {
   const user_id = req.cookies['user_id'];
-  if  (user_id) {
+  if (user_id) {
     return res.redirect('/urls');
   }
   const user = users[user_id];
@@ -121,7 +133,7 @@ app.get("/register", (req, res) => {
 // Login - GET
 app.get("/login", (req, res) => {
   const user_id = req.cookies['user_id'];
-  if  (user_id) {
+  if (user_id) {
     return res.redirect('/urls');
   }
   const user = users[user_id];
