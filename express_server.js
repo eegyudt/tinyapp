@@ -7,17 +7,6 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true })); //added for POST requests
 
 
-// generate a random 6 character alphanumeric string
-let randomString = function() {
-  const inputArr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-  let randomStr = '';
-  for (let i = 0; i <= 6; i++) {
-    let randomNum = Math.floor(Math.random() * inputArr.length);
-    randomStr = randomStr + inputArr[randomNum];
-  }
-  return randomStr;
-};
-
 //database for random code - url key-value pairs
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -33,6 +22,31 @@ const users = {
   //   password: "purple-monkey-dinosaur",
   // },
 };
+
+//HELPER FUNCTIONS
+
+//Helper function - generate a random 6 character alphanumeric string
+let randomString = function() {
+  const inputArr = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  let randomStr = '';
+  for (let i = 0; i <= 6; i++) {
+    let randomNum = Math.floor(Math.random() * inputArr.length);
+    randomStr = randomStr + inputArr[randomNum];
+  }
+  return randomStr;
+};
+
+//Helper function - find user in db with email address
+const getUserByEmail = function(userEmail) {
+  let foundUser = null;
+  for (let key in users) {
+    if (userEmail === users[key].email) {
+      foundUser = key;
+    }
+  }
+  return foundUser;
+};
+
 
 // Rendering home page
 app.get("/", (req, res) => {
@@ -82,8 +96,8 @@ app.post('/urls/:id/delete', (req, res) => {
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies['user_id'];
   const user = users[user_id];
-  const templateVars = { user};
-  
+  const templateVars = { user };
+
   res.render("urls_new", templateVars);
 });
 
@@ -91,7 +105,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const user_id = req.cookies['user_id'];
   const user = users[user_id];
-  
+
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
@@ -124,6 +138,17 @@ app.post('/register', (req, res) => {
 
   const email = req.body.email;
   const password = req.body.password;
+  if (!email || !password) {
+    return res.status(400).send("You must enter both email and password to register!");
+  }
+
+  console.log('email: ', email, getUserByEmail(email));
+  console.log(users);
+  
+  if (getUserByEmail(email)) {
+    return res.status(400).send("You've already registered this email!");
+  }
+
   const user_id = randomString();
 
   const user = {
@@ -135,7 +160,7 @@ app.post('/register', (req, res) => {
   users[user_id] = user;
 
   res.cookie('user_id', user_id);
-  //console.log(users);
+  
   res.redirect('/urls');
 });
 
