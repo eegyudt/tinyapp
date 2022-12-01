@@ -88,7 +88,7 @@ app.post("/urls", (req, res) => {
   const user_id = req.cookies['user_id'];
 
   if (!user_id) {
-    return res.status(400).send("You must be logged in to use TinyApp!");
+    return res.status(400).send(`<h1>You must be logged in to use TinyApp!<h1> <a href ="/login">Back to Login</a>`);
   }
   const urlShortCode = randomString();
   urlDatabase[urlShortCode] = {longURL: req.body.longURL, userID: user_id};
@@ -98,20 +98,28 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${urlShortCode}`); //redirecting from shortURL to longURL
 });
 
+// @!!!
 // Read a short URL - GET
 app.get("/u/:id", (req, res) => {
   if (urlDatabase[req.params.id]) {
     const longURL = urlDatabase[req.params.id].longURL;
     if (!longURL) {
-      res.status(400).send("This short url does not exist!");
+      res.status(400).send(`<h1>This short url does not exist!<h1> <a href ="/u/:id">Back to short URL</a>`);
     } else {
       res.redirect(longURL);
     }
+  } else {
+    res.status(400).send(`<h1>This short url does not exist!<h1> <a href ="/urls">Back to main page</a>`);
   }
 });
 
 //Update - POST
 app.post('/urls/:id', (req, res) => {
+  const user_id = req.cookies['user_id'];
+  if (!user_id) {
+    return res.redirect('/login');
+  }
+
   const urlId = req.params.id;
   const longURL = req.body.longURL;
   urlDatabase[urlId].longURL = longURL;
@@ -131,6 +139,8 @@ app.post('/urls/:id/delete', (req, res) => {
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies['user_id'];
   if (!user_id) {
+    // res.status(400).send(`You must login first! ${'/login'}`);
+    res.send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
     return res.redirect('/login');
   }
   const user = users[user_id];
@@ -139,18 +149,41 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+
+////????????????????????Ensure the GET /urls/:id page returns a relevant error message to the user if they are not logged in.????
+
+/// how to implement this?:  Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
+
+
 // Details - GET
 app.get("/urls/:id", (req, res) => {
   const user_id = req.cookies['user_id'];
   const user = users[user_id];
-
+  const id = req.params.id;
   const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
+    id: id,
+    longURL: urlDatabase[id].longURL,
     user
   };
   res.render("urls_show", templateVars);
 });
+
+// delete after debugging
+// app.post("/urls", (req, res) => {
+//   const user_id = req.cookies['user_id'];
+
+//   if (!user_id) {
+//     return res.status(400).send("You must be logged in to use TinyApp!");
+//   }
+//   const urlShortCode = randomString();
+//   urlDatabase[urlShortCode] = {longURL: req.body.longURL, userID: user_id};
+//   // urlDatabase[urlShortCode].longURL = req.body.longURL; //?????
+//   // urlDatabase[urlShortCode].userID = user_id;
+
+//   res.redirect(`/urls/${urlShortCode}`); //redirecting from shortURL to longURL
+// });
+
+
 
 // Register - GET
 app.get("/register", (req, res) => {
@@ -179,7 +212,7 @@ app.get("/login", (req, res) => {
 app.get("/urls", (req, res) => {
   const user_id = req.cookies['user_id'];
   if (!user_id) {
-    return res.status(400).send("You must login first!");
+    return res.status(400).send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
   }
 
   let urlObj = urlsForUser(user_id);
@@ -198,11 +231,11 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if (!email || !password) {
-    return res.status(400).send("You must enter both email and password to register!");
+    return res.status(400).send(`<h1>You must enter both email and password to register!<h1> <a href ="/register">Back to Registration</a>`);
   }
 
   if (getUserByEmail(email)) {
-    return res.status(400).send("You've already registered this email!");
+    return res.status(400).send(`<h1>You've already registered this email!<h1> <a href ="/register">Back to Registration</a>`);
   }
 
   const user_id = randomString();
@@ -225,17 +258,17 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if (!email || !password) {
-    return res.status(400).send("You must enter both email and password to register!");
+    return res.status(400).send(`<h1>You must enter both email and password to login!<h1> <a href ="/login">Back to Login</a>`);
   }
 
   const user = getUserByEmail(email);
 
   if (!user) {
-    return res.status(400).send("You haven't registered this email!");
+    return res.status(400).send(`<h1>You haven't registered this email!<h1> <a href ="/register">Back to Registration</a>`);
   }
 
   if (user.password !== password) {
-    return res.status(400).send("Email or password is incorrect!");
+    return res.status(400).send(`<h1>Email or password is incorrect!<h1> <a href ="/login">Back to Login</a>`);
   }
 
   const user_id = user.id;
