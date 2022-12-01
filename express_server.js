@@ -38,15 +38,13 @@ let randomString = function() {
 
 //Helper function - find user in db with email address
 const getUserByEmail = function(userEmail) {
-  let foundUser = null;
   for (let key in users) {
     if (userEmail === users[key].email) {
-      foundUser = key;
+      return users[key];
     }
   }
-  return foundUser;
+  return null;
 };
-
 
 // Rendering home page
 app.get("/", (req, res) => {
@@ -122,6 +120,15 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
+// Login - GET
+app.get("/login", (req, res) => {
+  const user_id = req.cookies['user_id'];
+  const user = users[user_id];
+  const templateVars = { user, urls: urlDatabase };
+  res.render("urls_login", templateVars);
+});
+
+
 //All - GET
 app.get("/urls", (req, res) => {
   const user_id = req.cookies['user_id'];
@@ -142,9 +149,6 @@ app.post('/register', (req, res) => {
     return res.status(400).send("You must enter both email and password to register!");
   }
 
-  console.log('email: ', email, getUserByEmail(email));
-  console.log(users);
-  
   if (getUserByEmail(email)) {
     return res.status(400).send("You've already registered this email!");
   }
@@ -160,19 +164,46 @@ app.post('/register', (req, res) => {
   users[user_id] = user;
 
   res.cookie('user_id', user_id);
-  
+
   res.redirect('/urls');
 });
 
-
-//Login route
+//login route - POST
 app.post('/login', (req, res) => {
+  console.log(users);
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!email || !password) {
+    return res.status(400).send("You must enter both email and password to register!");
+  }
 
-  const user_id = req.body.user_id;
+  const user = getUserByEmail(email);
+
+  if (!user) {
+    return res.status(400).send("You haven't registered this email!");
+  }
+  console.log("user.email >>>", user.email, "user.password: >>> ", user.password);
+  console.log("typeof password: >>>", typeof password, "user.password: >>>", user.password);
+
+  if (user.password !== password) {
+    return res.status(400).send("Email or password is incorrect!");
+  }
+
+  const user_id = user.id;
+
   res.cookie('user_id', user_id);
 
   res.redirect('/urls');
 });
+
+// //Login route
+// app.post('/login', (req, res) => {
+
+//   const user_id = req.body.user_id;
+//   res.cookie('user_id', user_id);
+
+//   res.redirect('/urls');
+// });
 
 //logout route
 app.post('/logout', (req, res) => {
