@@ -65,7 +65,7 @@ const getUserByEmail = function(userEmail) {
 const urlsForUser = function(id) {
   const urlObject = {};
   for (let key in urlDatabase) {
-    if (key.userID === id) {
+    if (urlDatabase[key].userID === id) {
       const valueObj = {
         longURL: urlDatabase[key].longURL,
         userID: urlDatabase[key].userID
@@ -91,8 +91,9 @@ app.post("/urls", (req, res) => {
     return res.status(400).send("You must be logged in to use TinyApp!");
   }
   const urlShortCode = randomString();
-  urlDatabase[urlShortCode].longURL = req.body.longURL;
-  urlDatabase[urlShortCode].userID = user_id;
+  urlDatabase[urlShortCode] = {longURL: req.body.longURL, userID: user_id};
+  // urlDatabase[urlShortCode].longURL = req.body.longURL; //?????
+  // urlDatabase[urlShortCode].userID = user_id;
 
   res.redirect(`/urls/${urlShortCode}`); //redirecting from shortURL to longURL
 });
@@ -181,7 +182,7 @@ app.get("/urls", (req, res) => {
     return res.status(400).send("You must login first!");
   }
 
-  const urlObj = urlsForUser(user_id);
+  let urlObj = urlsForUser(user_id);
 
   const user = users[user_id];
   const templateVars = { user, urls: urlObj};
