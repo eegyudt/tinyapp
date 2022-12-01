@@ -15,12 +15,11 @@ const urlDatabase = {
 
 //database for users
 const users = {
-  //this is the format of properties in users object
-  // userRandomID: {
-  //   id: "userRandomID",
-  //   email: "user@example.com",
-  //   password: "purple-monkey-dinosaur",
-  // },
+  123456: {
+    id: "123456",
+    email: "a@a.com",
+    password: "123",
+  },
 };
 
 //HELPER FUNCTIONS
@@ -49,7 +48,7 @@ const getUserByEmail = function(userEmail) {
 
 // Rendering home page
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect('/urls');
 });
 
 // CRUD URLS
@@ -61,11 +60,6 @@ app.post("/urls", (req, res) => {
   urlDatabase[urlShortCode] = req.body.longURL;
 
   res.redirect(`/urls/${urlShortCode}`); //redirecting from shortURL to longURL
-});
-
-// Read all - GET
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
 });
 
 // Read one - GET
@@ -116,6 +110,9 @@ app.get("/urls/:id", (req, res) => {
 // Register - GET
 app.get("/register", (req, res) => {
   const user_id = req.cookies['user_id'];
+  if  (user_id) {
+    return res.redirect('/urls');
+  }
   const user = users[user_id];
   const templateVars = { user, urls: urlDatabase };
   res.render("urls_register", templateVars);
@@ -124,6 +121,9 @@ app.get("/register", (req, res) => {
 // Login - GET
 app.get("/login", (req, res) => {
   const user_id = req.cookies['user_id'];
+  if  (user_id) {
+    return res.redirect('/urls');
+  }
   const user = users[user_id];
   const templateVars = { user, urls: urlDatabase };
   res.render("urls_login", templateVars);
@@ -183,8 +183,6 @@ app.post('/login', (req, res) => {
   if (!user) {
     return res.status(400).send("You haven't registered this email!");
   }
-  // console.log("user.email >>>", user.email, "user.password: >>> ", user.password);
-  // console.log("typeof password: >>>", typeof password, "user.password: >>>", user.password);
 
   if (user.password !== password) {
     return res.status(400).send("Email or password is incorrect!");
