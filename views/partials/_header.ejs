@@ -14,8 +14,10 @@
     <div>
       <% if(user){ %>
         <div>
+        </div>
+        Logged in as: <%= user.email %>!
+        <div>
           <form method="POST" action="/logout">
-            Logged in as: <%= user.email %>!       
             <button type="submit" class="btn btn-danger">logout </button>
           </form>
         </div>

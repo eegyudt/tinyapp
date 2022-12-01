@@ -38,12 +38,13 @@ let randomString = function() {
 
 //Helper function - find user in db with email address
 const getUserByEmail = function(userEmail) {
+  let foundUser = null;
   for (let key in users) {
     if (userEmail === users[key].email) {
       return users[key];
     }
   }
-  return null;
+  return foundUser;
 };
 
 // Rendering home page
@@ -182,8 +183,8 @@ app.post('/login', (req, res) => {
   if (!user) {
     return res.status(400).send("You haven't registered this email!");
   }
-  console.log("user.email >>>", user.email, "user.password: >>> ", user.password);
-  console.log("typeof password: >>>", typeof password, "user.password: >>>", user.password);
+  // console.log("user.email >>>", user.email, "user.password: >>> ", user.password);
+  // console.log("typeof password: >>>", typeof password, "user.password: >>>", user.password);
 
   if (user.password !== password) {
     return res.status(400).send("Email or password is incorrect!");
@@ -196,22 +197,13 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
-// //Login route
-// app.post('/login', (req, res) => {
-
-//   const user_id = req.body.user_id;
-//   res.cookie('user_id', user_id);
-
-//   res.redirect('/urls');
-// });
-
 //logout route
 app.post('/logout', (req, res) => {
 
   const user_id = req.body.user_id;
   res.clearCookie('user_id', user_id);
 
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 // listening
