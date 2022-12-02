@@ -14,12 +14,15 @@
     <div>
       <% if(user){ %>
         <div>
+          <h5 align="left">Logged in as: <%= user.email %>!</h1>
         </div>
-        Logged in as: <%= user.email %>!
+
         <div>
-          <form method="POST" action="/logout">
-            <button type="submit" class="btn btn-danger">logout </button>
-          </form>
+          <div>
+            <form method="POST" action="/logout">
+              <button type="submit" class="btn btn-danger">Logout </button>
+            </form>
+          </div>
         </div>
         <% } else{ %>
           <div class="navbar-nav">
