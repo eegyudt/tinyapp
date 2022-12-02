@@ -1,13 +1,20 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
-let cookieParser = require("cookie-parser");
-app.use(cookieParser());
-const bcrypt = require("bcryptjs");
+// let cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
+// app.use(cookieParser());
+// app.use(cookieSession());
 app.set("view engine", "ejs");
+const bcrypt = require("bcryptjs");
 app.use(express.urlencoded({ extended: true })); //added for POST requests
 
-
+app.use(cookieSession({
+  name: 'user_id', // this is what the user will see when they inspect their cookies
+  keys: ['user_id'],
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 // //database for random code - url key-value pairs
 // const urlDatabase = {
@@ -43,6 +50,11 @@ const users = {
     email: "a@a.com",
     password: "123",
   },
+  GOEQHgt: {
+    id: 'GOEQHgt',
+    email: 'd@d.com',
+    password: '$2a$10$2jEvZDsrfpQy6SGLuKFjzeGs.CGMIbWPmHCrAUzA2O7yhqSsB.ywC'
+  }
 };
 
 //HELPER FUNCTIONS
@@ -93,7 +105,8 @@ app.get("/", (req, res) => {
 // API/data handler routes
 // Create - POST
 app.post("/urls", (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
 
   if (!user_id) {
     return res.status(400).send(`<h1>You must be logged in to use TinyApp!<h1> <a href ="/login">Back to Login</a>`);
@@ -127,7 +140,9 @@ app.get("/u/:id", (req, res) => {
 
 //Update - POST
 app.post('/urls/:id', (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
+
   //checking if user is logged in
   if (!user_id) {
     return res.status(400).send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
@@ -167,7 +182,8 @@ app.post('/urls/:id', (req, res) => {
 
 // Delete - POST
 app.post('/urls/:id/delete', (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
 
   // checking if user is logged in
   if (!user_id) {
@@ -206,7 +222,9 @@ app.post('/urls/:id/delete', (req, res) => {
 // all the routes that render a ui - user (HTML/CSS)
 // New - GET
 app.get("/urls/new", (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
+
   if (!user_id) {
     res.send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
     return res.redirect('/login');
@@ -220,7 +238,8 @@ app.get("/urls/new", (req, res) => {
 
 // Details - GET /urls/:id
 app.get("/urls/:id", (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
 
   //checking if user is logged in
   if (!user_id) {
@@ -268,7 +287,9 @@ app.get("/urls/:id", (req, res) => {
 
 // Register - GET
 app.get("/register", (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
+
   if (user_id) {
     return res.redirect('/urls');
   }
@@ -279,7 +300,9 @@ app.get("/register", (req, res) => {
 
 // Login - GET
 app.get("/login", (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
+
   if (user_id) {
     return res.redirect('/urls');
   }
@@ -291,7 +314,9 @@ app.get("/login", (req, res) => {
 
 //All - GET
 app.get("/urls", (req, res) => {
-  const user_id = req.cookies['user_id'];
+  // const user_id = req.cookies['user_id'];
+  const user_id = req.session['user_id'];
+
   if (!user_id) {
     return res.status(400).send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
   }
@@ -320,18 +345,20 @@ app.post('/register', (req, res) => {
   }
 
   const user_id = randomString();
-  res.cookie('user_id', user_id);
-  const hashedPassword = bcrypt.hashSync(password, 10);
+  // res.cookie('user_id', user_id);
+  req.session.user_id = user_id;
   
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
   const user = {
     id: user_id,
     email: email,
     password: hashedPassword
   };
   users[user_id] = user;
-
+  console.log(users);
   res.redirect('/urls');
-  
+
 });
 
 
@@ -350,14 +377,17 @@ app.post('/login', (req, res) => {
     return res.status(400).send(`<h1>You haven't registered this email!<h1> <a href ="/register">Back to Registration</a>`);
   }
   const hashedPassword = bcrypt.hashSync(password, 10);
-  
-  if (!bcrypt.compareSync(user.password, hashedPassword)) {
+  console.log(hashedPassword);
+  console.log(password);
+  console.log(user);
+  if (!bcrypt.compareSync(password, user.password)) {
     return res.status(400).send(`<h1>Email or password is incorrect!<h1> <a href ="/login">Back to Login</a>`);
   }
 
   const user_id = user.id;
 
-  res.cookie('user_id', user_id);
+  // res.cookie('user_id', user_id);
+  req.session.user_id = user_id;
 
   res.redirect('/urls');
 });
@@ -366,7 +396,8 @@ app.post('/login', (req, res) => {
 app.post('/logout', (req, res) => {
 
   const user_id = req.body.user_id;
-  res.clearCookie('user_id', user_id);
+  // res.clearCookie('user_id', user_id);
+  req.session = null;
 
   res.redirect('/login');
 });
