@@ -3,8 +3,10 @@ const app = express();
 const PORT = 8080;
 let cookieParser = require("cookie-parser");
 app.use(cookieParser());
+const bcrypt = require("bcryptjs");
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true })); //added for POST requests
+
 
 
 // //database for random code - url key-value pairs
@@ -211,6 +213,7 @@ app.get("/urls/new", (req, res) => {
   }
   const user = users[user_id];
   const templateVars = { user };
+  console.log(users);
 
   res.render("urls_new", templateVars);
 });
@@ -226,16 +229,16 @@ app.get("/urls/:id", (req, res) => {
 
   const user = users[user_id];
   const urlShortCode = req.params.id;
-  
+
   //checking if short code is in urlDatabase and if userID matches for logged in user
-  
+
   if (!urlDatabase[urlShortCode]) {
     return res.status(400).send(`<h1>This shortcode does not exist!<h1> <a href ="/urls">Back to main page.</a>`);
   }
   if (urlDatabase[urlShortCode].userID !== user_id) {
     return res.status(400).send(`<h1>This is not your shortcode!<h1> <a href ="/urls">Back to main page.</a>`);
   }
-  
+
   const longURL = urlDatabase[urlShortCode].longURL;
 
   const templateVars = {
@@ -317,19 +320,21 @@ app.post('/register', (req, res) => {
   }
 
   const user_id = randomString();
-
+  res.cookie('user_id', user_id);
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  
   const user = {
     id: user_id,
     email: email,
-    password: password
+    password: hashedPassword
   };
-
   users[user_id] = user;
 
-  res.cookie('user_id', user_id);
-
   res.redirect('/urls');
+  
 });
+
+
 
 //login route - POST
 app.post('/login', (req, res) => {
@@ -344,8 +349,9 @@ app.post('/login', (req, res) => {
   if (!user) {
     return res.status(400).send(`<h1>You haven't registered this email!<h1> <a href ="/register">Back to Registration</a>`);
   }
-
-  if (user.password !== password) {
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  
+  if (!bcrypt.compareSync(user.password, hashedPassword)) {
     return res.status(400).send(`<h1>Email or password is incorrect!<h1> <a href ="/login">Back to Login</a>`);
   }
 
