@@ -26,7 +26,13 @@ const urlDatabase = {
     longURL: "https://www.apple.ca",
     userID: "aJ50lW",
   },
+  ebDoGx: {
+    longURL: "https://www.costco.ca",
+    userID: "123456",
+  },
 };
+
+
 
 //database for users
 const users = {
@@ -91,7 +97,7 @@ app.post("/urls", (req, res) => {
     return res.status(400).send(`<h1>You must be logged in to use TinyApp!<h1> <a href ="/login">Back to Login</a>`);
   }
   const urlShortCode = randomString();
-  urlDatabase[urlShortCode] = {longURL: req.body.longURL, userID: user_id};
+  urlDatabase[urlShortCode] = { longURL: req.body.longURL, userID: user_id };
   // urlDatabase[urlShortCode].longURL = req.body.longURL; //?????
   // urlDatabase[urlShortCode].userID = user_id;
 
@@ -113,12 +119,30 @@ app.get("/u/:id", (req, res) => {
   }
 });
 
+//POST f a user tries to access a shortened url (GET /u/:id) that does not exist, we should send them a relevant message - !!!
+//curl -X POST -i localhost:8080/u/sssddd
+
+
 //Update - POST
 app.post('/urls/:id', (req, res) => {
   const user_id = req.cookies['user_id'];
+  //checking if user is logged in
   if (!user_id) {
-    return res.redirect('/login');
+    return res.status(400).send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
   }
+  const user = users[user_id];
+  const id = req.params.id;
+
+  //checking if short code is in urlDatabase and if userID matches for logged in user
+  if (!urlDatabase[id]) {
+    return res.status(400).send(`<h1>This shortcode does not exist!<h1> <a href ="/urls">Back to main page.</a>`);
+  }
+
+  //checking if logged in user id matches with urlDatabase user id for short code
+  if (urlDatabase[id].userID != user_id) {
+    return res.status(400).send(`<h1>This is not your shortcode!<h1> <a href ="/urls">Back to main page.</a>`);
+  }
+
 
   const urlId = req.params.id;
   const longURL = req.body.longURL;
@@ -126,12 +150,55 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
+
+//POST /urls/:id should return a relevant error message if id does not exist
+//curl -X POST -i localhost:8080/urls/b6UTxR
+
+//POST /urls/:id should return a relevant error message if the user is not logged in
+//curl -X POST -i localhost:8080/urls/b6UTxQ
+
+//POST /urls/:id should return a relevant error message if the user does not own the URL
+//curl -X POST -i localhost:8080/urls/b6UTxQ
+
+//user's short code - !!displaying you must login first
+// curl -X POST -i localhost:8080/urls/ebDoGx
+
 // Delete - POST
 app.post('/urls/:id/delete', (req, res) => {
-  const urlID = req.params.id;
-  delete urlDatabase[urlID];
+  const user_id = req.cookies['user_id'];
+
+  // checking if user is logged in
+  if (!user_id) {
+    return res.status(400).send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
+  }
+
+  const user = users[user_id];
+  const shortUrl = req.params.id;
+
+  //checking if short code is in urlDatabase
+  if (!urlDatabase[shortUrl]) {
+    return res.status(400).send(`<h1>This shortcode does not exist!<h1> <a href ="/urls">Back to main page.</a>`);
+  }
+
+  //checking if logged in user id matches with urlDatabase user id for short code
+  if (urlDatabase[shortUrl].userID != user_id) {
+    return res.status(400).send(`<h1>This is not your shortcode!<h1> <a href ="/urls">Back to main page.</a>`);
+  }
+
+  delete urlDatabase[shortUrl];
   res.redirect("/urls");
 });
+
+//POST /urls/:id/delete should return a relevant error message if id does not exist 
+//curl -X POST -i localhost:8080/urls/b6UTxR/delete
+
+//POST /urls/:id/delete should return a relevant error message if the user is not logged in 
+//curl -X POST -i localhost:8080/urls/b6UTxQ/delete
+
+//POST /urls/:id/delete should return a relevant error message if the user does not own the URL
+//curl -X POST -i localhost:8080/urls/b6UTxQ/delete
+
+
 
 // RENDERING / INDEX ROUTES
 // all the routes that render a ui - user (HTML/CSS)
@@ -139,7 +206,6 @@ app.post('/urls/:id/delete', (req, res) => {
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies['user_id'];
   if (!user_id) {
-    // res.status(400).send(`You must login first! ${'/login'}`);
     res.send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
     return res.redirect('/login');
   }
@@ -149,20 +215,32 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-
-////????????????????????Ensure the GET /urls/:id page returns a relevant error message to the user if they are not logged in.????
-
-/// how to implement this?:  Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
-
-
-// Details - GET
+// Details - GET /urls/:id
 app.get("/urls/:id", (req, res) => {
   const user_id = req.cookies['user_id'];
+
+  //checking if user is logged in
+  if (!user_id) {
+    return res.status(400).send(`<h1>You must login first!<h1> <a href ="/login">Back to Login</a>`);
+  }
+
   const user = users[user_id];
-  const id = req.params.id;
+  const urlShortCode = req.params.id;
+  
+  //checking if short code is in urlDatabase and if userID matches for logged in user
+  
+  if (!urlDatabase[urlShortCode]) {
+    return res.status(400).send(`<h1>This shortcode does not exist!<h1> <a href ="/urls">Back to main page.</a>`);
+  }
+  if (urlDatabase[urlShortCode].userID !== user_id) {
+    return res.status(400).send(`<h1>This is not your shortcode!<h1> <a href ="/urls">Back to main page.</a>`);
+  }
+  
+  const longURL = urlDatabase[urlShortCode].longURL;
+
   const templateVars = {
-    id: id,
-    longURL: urlDatabase[id].longURL,
+    id: urlShortCode,
+    longURL,
     user
   };
   res.render("urls_show", templateVars);
@@ -218,7 +296,7 @@ app.get("/urls", (req, res) => {
   let urlObj = urlsForUser(user_id);
 
   const user = users[user_id];
-  const templateVars = { user, urls: urlObj};
+  const templateVars = { user, urls: urlObj };
   res.render("urls_index", templateVars);
 });
 
